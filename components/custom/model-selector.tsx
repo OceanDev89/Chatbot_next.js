@@ -36,7 +36,11 @@ export function ModelSelector({
       <DropdownMenuTrigger
         asChild
         className={cn(
+
+          'px-2 w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground md:h-8 [&>svg]:!size-5 md:[&>svg]:!size-4',
+
           'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
+
           className
         )}
       >

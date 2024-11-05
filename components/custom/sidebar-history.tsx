@@ -85,6 +85,54 @@ const ChatItem = ({
   </SidebarMenuItem>
 );
 
+type GroupedChats = {
+  today: Chat[];
+  yesterday: Chat[];
+  lastWeek: Chat[];
+  lastMonth: Chat[];
+  older: Chat[];
+};
+
+const ChatItem = ({
+  chat,
+  isActive,
+  onDelete,
+  setOpenMobile,
+}: {
+  chat: Chat;
+  isActive: boolean;
+  onDelete: (chatId: string) => void;
+  setOpenMobile: (open: boolean) => void;
+}) => (
+  <SidebarMenuItem>
+    <SidebarMenuButton asChild isActive={isActive}>
+      <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+        <span>{getTitleFromChat(chat)}</span>
+      </Link>
+    </SidebarMenuButton>
+    <DropdownMenu modal={true}>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuAction
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
+          showOnHover={!isActive}
+        >
+          <MoreHorizontalIcon />
+          <span className="sr-only">More</span>
+        </SidebarMenuAction>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="bottom" align="end">
+        <DropdownMenuItem
+          className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+          onSelect={() => onDelete(chat.id)}
+        >
+          <TrashIcon />
+          <span>Delete</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </SidebarMenuItem>
+);
+
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
@@ -132,6 +180,11 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   if (!user) {
     return (
       <SidebarGroup>
+
+        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+          Today
+        </div>
+
         <SidebarGroupContent>
           <div className="text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
             <div>Login to save and revisit previous chats!</div>
@@ -173,6 +226,18 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   if (history?.length === 0) {
     return (
       <SidebarGroup>
+        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+          Today
+        </div>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <InfoIcon />
+                <span>No previous chats</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         <SidebarGroupContent>
           <div className="text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
             <div>
