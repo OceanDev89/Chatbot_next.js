@@ -20,6 +20,10 @@ export function SidebarToggle({
         className="md:px-2 md:h-fit"
       >
         <SidebarLeftIcon />
+        variant="outline"
+        className="md:px-2 md:h-fit"
+      >
+        <SidebarLeftIcon size={16} />
       </Button>
     </BetterTooltip>
   );

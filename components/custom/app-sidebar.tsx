@@ -42,7 +42,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <span className="text-lg font-semibold px-2">Chatbot</span>
             </Link>
             <BetterTooltip content="New Chat" align="start">
-              <Button variant="ghost" className="p-2 h-fit">
+
                 <Link href="/" onClick={() => setOpenMobile(false)}>
                   <PlusIcon />
                 </Link>
@@ -52,6 +52,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+
         <SidebarGroup>
           <SidebarHistory user={user} />
         </SidebarGroup>
@@ -83,7 +84,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </CardFooter>
             </Card>
           </SidebarGroupContent>
+
+        <SidebarGroup>
+          <SidebarHistory user={user} />
+
         </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="gap-0">
         {user && (
           <SidebarGroup>
             <SidebarGroupContent>

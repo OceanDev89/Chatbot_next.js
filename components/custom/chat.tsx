@@ -4,11 +4,14 @@ import { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
+import { useWindowSize } from 'usehooks-ts';
 
-import { Model } from '@/ai/models';
 import { ChatHeader } from '@/components/custom/chat-header';
-import { Message as PreviewMessage } from '@/components/custom/message';
+import { PreviewMessage } from '@/components/custom/message';
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
+import { Vote } from '@/db/schema';
+import { fetcher } from '@/lib/utils';
 
 import { Canvas, UICanvas } from './canvas';
 import { CanvasStreamHandler } from './canvas-stream-handler';
@@ -24,6 +27,8 @@ export function Chat({
   initialMessages: Array<Message>;
   selectedModelId: string;
 }) {
+  const { mutate } = useSWRConfig();
+
   const {
     messages,
     setMessages,
@@ -38,11 +43,31 @@ export function Chat({
     body: { id, modelId: selectedModelId },
     initialMessages,
     onFinish: () => {
-      window.history.replaceState({}, '', `/chat/${id}`);
+      mutate('/api/history');
     },
   });
 
-  const [canvas, setCanvas] = useState<UICanvas | null>(null);
+  const { width: windowWidth = 1920, height: windowHeight = 1080 } =
+    useWindowSize();
+
+  const [canvas, setCanvas] = useState<UICanvas>({
+    documentId: 'init',
+    content: '',
+    title: '',
+    status: 'idle',
+    isVisible: false,
+    boundingBox: {
+      top: windowHeight / 4,
+      left: windowWidth / 4,
+      width: 250,
+      height: 50,
+    },
+  });
+
+  const { data: votes } = useSWR<Array<Vote>>(
+    `/api/vote?chatId=${id}`,
+    fetcher
+  );
 
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -55,19 +80,23 @@ export function Chat({
         <ChatHeader selectedModelId={selectedModelId} />
         <div
           ref={messagesContainerRef}
-          className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll"
+          className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
         >
           {messages.length === 0 && <Overview />}
 
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <PreviewMessage
               key={message.id}
-              role={message.role}
-              content={message.content}
-              attachments={message.experimental_attachments}
-              toolInvocations={message.toolInvocations}
+              chatId={id}
+              message={message}
               canvas={canvas}
               setCanvas={setCanvas}
+              isLoading={isLoading && messages.length - 1 === index}
+              vote={
+                votes
+                  ? votes.find((vote) => vote.messageId === message.id)
+                  : undefined
+              }
             />
           ))}
 
@@ -78,6 +107,7 @@ export function Chat({
         </div>
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           <MultimodalInput
+            chatId={id}
             input={input}
             setInput={setInput}
             handleSubmit={handleSubmit}
@@ -95,6 +125,7 @@ export function Chat({
       <AnimatePresence>
         {canvas && canvas.isVisible && (
           <Canvas
+            chatId={id}
             input={input}
             setInput={setInput}
             handleSubmit={handleSubmit}
@@ -107,6 +138,7 @@ export function Chat({
             setCanvas={setCanvas}
             messages={messages}
             setMessages={setMessages}
+            votes={votes}
           />
         )}
       </AnimatePresence>
